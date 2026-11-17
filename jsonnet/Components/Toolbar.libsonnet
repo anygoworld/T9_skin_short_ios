@@ -1,0 +1,383 @@
+local colors = import '../Constants/Colors.libsonnet';
+local keyboardParams = import '../Constants/Keyboard.libsonnet';
+local basicStyle = import 'BasicStyle.libsonnet';
+local utils = import 'Utils.libsonnet';
+
+
+local newCandidateStyle(param={}, isDark=false) =
+  utils.extractProperties(
+    param,
+    [
+      'insets',
+      'indexFontSize',
+      'indexFontWeight',
+      'textFontSize',
+      'textFontWeight',
+      'commentFontSize',
+      'commentFontWeight',
+    ]
+  )
+  + utils.extractColors(
+    param,
+    [
+      'backgroundColor',
+      'separatorColor',
+      'highlightBackgroundColor',
+      'preferredBackgroundColor',
+      'preferredIndexColor',
+      'preferredTextColor',
+      'preferredCommentColor',
+      'indexColor',
+      'textColor',
+      'commentColor',
+    ],
+    isDark
+  );
+
+local toolbarBackgroundStyleName = basicStyle.keyboardBackgroundStyleName;
+local horizontalCandidateBackgroundStyleName = basicStyle.keyboardBackgroundStyleName;
+local verticalCandidateBackgroundStyleName = basicStyle.keyboardBackgroundStyleName;
+
+// MARK: - 横排候选字
+
+local horizontalCandidatesCollectionViewName = 'horizontalCandidates';
+local expandButtonName = 'expandButton';
+local horizontalCandidatesLayout = [
+  {
+    HStack: {
+      subviews: [
+        {
+          Cell: horizontalCandidatesCollectionViewName,
+        },
+        {
+          Cell: expandButtonName,
+        },
+      ],
+    },
+  },
+];
+
+// MARK: - T9 拼音音节候选栏（横向）
+// 借鉴参考皮肤的做法：在 horizontalCandidatesLayout 里用 VStack 把
+// 「音节栏 + 分隔线 + 间隔 + 候选词栏」叠起来，点击音节可筛选候选词。
+local t9HorizontalSymbolsName = 't9HorizontalSymbolsCollection';
+local t9PinyinDividerName = 't9PinyinDivider';
+local t9PinyinDividerSpacerName = 't9PinyinDividerSpacer';
+local t9PinyinRowStyleName = 't9PinyinRowStyle';
+local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
+local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
+// 纵向候选展开态：右侧纵向九键拼音音节列表（type: t9Symbols 在纵向布局下仍会刷新）
+local t9SymbolsExpandedName = 't9SymbolsCollectionExpanded';
+local t9SymbolsColumnStyleName = 't9SymbolsColumnStyle';
+
+local t9PinyinBarLayout = [
+  {
+    VStack: {
+      subviews: [
+        {
+          HStack: {
+            style: t9PinyinRowStyleName,
+            subviews: [{ Cell: t9HorizontalSymbolsName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerSpacerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerSpacerName }],
+          },
+        },
+        {
+          HStack: {
+            subviews: [
+              { Cell: horizontalCandidatesCollectionViewName },
+              { Cell: expandButtonName },
+            ],
+          },
+        },
+      ],
+    },
+  },
+];
+
+local newT9PinyinBar(isDark=false) = {
+  // 音节栏集合
+  [t9HorizontalSymbolsName]: {
+    type: 't9HorizontalSymbols',
+    backgroundStyle: toolbarBackgroundStyleName,
+    cellStyle: 't9PinyinCellStyle',
+    insets: { top: 2, left: 4, bottom: 2, right: 4 },
+    interCellSpacing: 36,
+    maxColumns: 7,
+  },
+  // 纵向候选展开态右侧的纵向拼音音节列表（type: t9Symbols）
+  [t9SymbolsExpandedName]: {
+    type: 't9Symbols',
+    backgroundStyle: basicStyle.systemButtonBackgroundStyleName,
+    insets: { top: 3, left: 4, bottom: 3, right: 4 },
+  },
+  [t9SymbolsColumnStyleName]: { size: { width: '1/7' } },
+  t9PinyinCellStyle: {
+    backgroundStyle: 't9PinyinCellBackgroundStyle',
+    foregroundStyle: 't9PinyinCellForegroundStyle',
+    insets: { left: 24, right: 24 },
+  },
+  t9PinyinCellBackgroundStyle: utils.newGeometryStyle({
+    normalColor: { light: '#ffffff00', dark: '#00000000' },
+    highlightColor: colors.labelColor.quaternary,
+    cornerRadius: 6,
+  }, isDark),
+  t9PinyinCellForegroundStyle: utils.newTextStyle({
+    normalColor: colors.labelColor.primary,
+    highlightColor: colors.labelColor.primary,
+    fontSize: 20,
+  }, isDark),
+  // 分隔线
+  [t9PinyinDividerName]: {
+    action: 'none',
+    backgroundStyle: 't9PinyinDividerBackgroundStyle',
+  },
+  t9PinyinDividerBackgroundStyle: utils.newGeometryStyle({
+    normalColor: colors.separatorColor,
+    highlightColor: colors.separatorColor,
+  }, isDark),
+  [t9PinyinDividerSpacerName]: {
+    action: 'none',
+    backgroundStyle: 't9PinyinDividerSpacerBackgroundStyle',
+  },
+  t9PinyinDividerSpacerBackgroundStyle: utils.newGeometryStyle({
+    normalColor: { light: '#ffffff00', dark: '#00000000' },
+    highlightColor: { light: '#ffffff00', dark: '#00000000' },
+  }, isDark),
+  // 行高
+  [t9PinyinRowStyleName]: { size: { height: 29.5 } },
+  [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
+  [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
+};
+
+local newHorizontalCandidatesCollectionView(isDark=false) = {
+  [horizontalCandidatesCollectionViewName]: {
+    type: 'horizontalCandidates',
+    candidateStyle: 'horizontalCandidateStyle',
+  },
+  horizontalCandidateStyle: newCandidateStyle(keyboardParams.candidateStyle, isDark),
+};
+
+local newExpandButton(isDark) = {
+  [expandButtonName]:
+    {
+      size: { width: 44 },
+      action: { shortcut: '#candidatesBarStateToggle' },
+    }
+    + utils.newForegroundStyle(style=expandButtonName + 'ForegroundStyle'),
+  [expandButtonName + 'ForegroundStyle']:
+    utils.newSystemImageStyle(keyboardParams.horizontalCandidateStyle.expandButton, isDark),
+};
+
+
+// MARK: - 纵排候选字
+
+local verticalCandidateCollectionViewName = 'verticalCandidates';
+local verticalLastRowStyleName = 'verticalLastRowStyle';
+local verticalCandidatePageUpButtonStyleName = 'verticalPageUpButtonStyle';
+local verticalCandidatePageDownButtonStyleName = 'verticalPageDownButtonStyle';
+local verticalCandidateReturnButtonStyleName = 'verticalReturnButtonStyle';
+local verticalCandidateBackspaceButtonStyleName = 'verticalBackspaceButtonStyle';
+
+local verticalCandidatesLayout = [
+  {
+    HStack: {
+      subviews: [
+        {
+          Cell: verticalCandidateCollectionViewName,
+        },
+      ],
+    },
+  },
+  {
+    HStack: {
+      style: verticalLastRowStyleName,
+      subviews: [
+        {
+          Cell: verticalCandidatePageUpButtonStyleName,
+        },
+        {
+          Cell: verticalCandidatePageDownButtonStyleName,
+        },
+        {
+          Cell: verticalCandidateReturnButtonStyleName,
+        },
+        {
+          Cell: verticalCandidateBackspaceButtonStyleName,
+        },
+      ],
+    },
+  },
+];
+
+// 带拼音音节栏的纵向候选布局（借鉴官方 T9 皮肤思路）：
+// 展开纵向候选栏时，工具栏区 / 按键区 / 横向候选栏会被隐藏。
+// 这里把纵向区拆成「左：候选网格 + 底排功能键」与「右：纵向拼音音节列表」两列，
+// 右侧使用 type: t9Symbols 的纵向九键符号列表——它在纵向布局下仍会刷新音节数据，
+// 从而在展开态也能点击音节二次筛选候选词。t9HorizontalSymbols 在纵向布局不刷新，故不用它。
+local t9PinyinBarVerticalCandidatesLayout = [
+  {
+    VStack: {
+      subviews: [
+        {
+          HStack: {
+            subviews: [
+              { Cell: verticalCandidateCollectionViewName },
+            ],
+          },
+        },
+        {
+          HStack: {
+            style: verticalLastRowStyleName,
+            subviews: [
+              { Cell: verticalCandidatePageUpButtonStyleName },
+              { Cell: verticalCandidatePageDownButtonStyleName },
+              { Cell: verticalCandidateReturnButtonStyleName },
+              { Cell: verticalCandidateBackspaceButtonStyleName },
+            ],
+          },
+        },
+      ],
+    },
+  },
+  {
+    VStack: {
+      style: t9SymbolsColumnStyleName,
+      subviews: [
+        { Cell: t9SymbolsExpandedName },
+      ],
+    },
+  },
+];
+
+
+local newVerticalCandidateCollectionStyle(isDark) = {
+  [verticalCandidateCollectionViewName]:
+    {
+      type: 'verticalCandidates',
+      insets: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.insets,
+      maxRows: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.maxRows,
+      maxColumns: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.maxColumns,
+      candidateStyle: 'verticalCandidateStyle',
+    } +
+    utils.extractColors(
+      keyboardParams.verticalCandidateStyle.candidateCollectionStyle,
+      [
+        'separatorColor',
+      ],
+      isDark
+    ),
+  verticalCandidateStyle: newCandidateStyle(keyboardParams.candidateStyle { insets: { left: 6, right: 6, top: 4, bottom: 4 } }, isDark),
+};
+
+local verticalLastRowStyle = {
+  [verticalLastRowStyleName]:
+    {
+      size: { height: keyboardParams.verticalCandidateStyle.bottomRowHeight },
+    },
+};
+
+local newVerticalCandidatePageUpButtonStyle(isDark) = {
+  [verticalCandidatePageUpButtonStyleName]:
+    utils.newBackgroundStyle(style=basicStyle.systemButtonBackgroundStyleName)
+    + utils.newForegroundStyle(style=verticalCandidatePageUpButtonStyleName + 'ForegroundStyle')
+    + {
+      action: keyboardParams.verticalCandidateStyle.pageUpButton.action,
+    },
+  [verticalCandidatePageUpButtonStyleName + 'ForegroundStyle']:
+    utils.newSystemImageStyle(keyboardParams.verticalCandidateStyle.pageUpButton, isDark),
+};
+
+local newVerticalCandidatePageDownButtonStyle(isDark) = {
+  [verticalCandidatePageDownButtonStyleName]:
+    utils.newBackgroundStyle(style=basicStyle.systemButtonBackgroundStyleName)
+    + utils.newForegroundStyle(style=verticalCandidatePageDownButtonStyleName + 'ForegroundStyle')
+    + {
+      action: keyboardParams.verticalCandidateStyle.pageDownButton.action,
+    },
+  [verticalCandidatePageDownButtonStyleName + 'ForegroundStyle']:
+    utils.newSystemImageStyle(keyboardParams.verticalCandidateStyle.pageDownButton, isDark),
+};
+
+
+local newVerticalCandidateReturnButtonStyle(isDark) = {
+  [verticalCandidateReturnButtonStyleName]:
+    utils.newBackgroundStyle(style=basicStyle.systemButtonBackgroundStyleName)
+    + utils.newForegroundStyle(style=verticalCandidateReturnButtonStyleName + 'ForegroundStyle')
+    + {
+      action: keyboardParams.verticalCandidateStyle.returnButton.action,
+    },
+  [verticalCandidateReturnButtonStyleName + 'ForegroundStyle']:
+    utils.newSystemImageStyle(keyboardParams.verticalCandidateStyle.returnButton, isDark),
+};
+
+local newVerticalCandidateBackspaceButtonStyle(isDark) = {
+  [verticalCandidateBackspaceButtonStyleName]:
+    utils.newBackgroundStyle(style=basicStyle.systemButtonBackgroundStyleName)
+    + utils.newForegroundStyle(style=verticalCandidateBackspaceButtonStyleName + 'ForegroundStyle')
+    + {
+      action: 'backspace',
+    },
+  [verticalCandidateBackspaceButtonStyleName + 'ForegroundStyle']:
+    utils.newSystemImageStyle(
+      {
+        systemImageName: 'delete.left',
+        normalColor: colors.toolbarButtonForegroundColor,
+        highlightColor: colors.toolbarButtonHighlightedForegroundColor,
+        fontSize: keyboardParams.verticalCandidateStyle.pageUpButton.fontSize,
+      },
+      isDark
+    ),
+};
+
+
+local newToolbar(isDark=false, params={}, withT9PinyinBar=false) =
+  {
+    // T9 拼音键盘需要更高的工具栏，容纳音节候选栏 + 分隔线 + 间隔 + 候选词栏
+    toolbarHeight: keyboardParams.toolbar.height + (if withT9PinyinBar then 34 else 0),
+    toolbarStyle: utils.newBackgroundStyle(style=toolbarBackgroundStyleName),
+    toolbarLayout: {},
+    horizontalCandidatesStyle:
+      utils.extractProperties(keyboardParams.horizontalCandidateStyle + params, ['insets'])
+      {
+        backgroundStyle: horizontalCandidateBackgroundStyleName,
+      },
+    horizontalCandidatesLayout: if withT9PinyinBar then t9PinyinBarLayout else horizontalCandidatesLayout,
+    verticalCandidatesStyle:
+      utils.extractProperties(keyboardParams.verticalCandidateStyle + params, ['insets'])
+      {
+        backgroundStyle: verticalCandidateBackgroundStyleName,
+      },
+    verticalCandidatesLayout: if withT9PinyinBar then t9PinyinBarVerticalCandidatesLayout else verticalCandidatesLayout,
+    candidateContextMenu: [
+      // TODO: 长按候选字菜单
+      // {
+      //   name: '空格',
+      //   action: 'space',
+      // },
+    ],
+  }
+  + newHorizontalCandidatesCollectionView(isDark)
+  + newExpandButton(isDark)
+  + (if withT9PinyinBar then newT9PinyinBar(isDark) else {})
+  + newVerticalCandidateCollectionStyle(isDark)
+  + verticalLastRowStyle
+  + newVerticalCandidatePageUpButtonStyle(isDark)
+  + newVerticalCandidatePageDownButtonStyle(isDark)
+  + newVerticalCandidateReturnButtonStyle(isDark)
+  + newVerticalCandidateBackspaceButtonStyle(isDark);
+
+// 导出
+{
+  new: newToolbar,
+}

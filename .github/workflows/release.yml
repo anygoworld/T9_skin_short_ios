@@ -1,0 +1,168 @@
+name: Build T9_skin_Short_press_ios skin
+
+on:
+  # 只有手动点击 Run workflow 才会发布
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  # 所有发布任务使用同一个队列，避免同时生成相同版本号
+  group: t9-skin-short-press-ios-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      SKIN_NAME: T9_skin_Short_press_ios
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine next version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --tags --force
+
+          # 获取已有的 v1.x 版本标签
+          latest_tag="$(
+            git tag --list 'v1.*' |
+            grep -E '^v1\.[0-9]+$' |
+            sort -V |
+            tail -n 1 || true
+          )"
+
+          if [ -z "$latest_tag" ]; then
+            # 第一次发布从 v1.0 开始
+            version="v1.0"
+          else
+            # 每次发布自动增加 0.1
+            minor="${latest_tag#v1.}"
+            next_minor=$((minor + 1))
+            version="v1.${next_minor}"
+          fi
+
+          echo "本次自动生成版本：$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Package .cskin
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf dist
+          mkdir -p "dist/${SKIN_NAME}"
+
+          # 只打包皮肤需要的文件
+          for item in config.yaml demo.png README.md dark light jsonnet; do
+            if [ -e "$item" ]; then
+              cp -R "$item" "dist/${SKIN_NAME}/"
+            fi
+          done
+
+          test -f "dist/${SKIN_NAME}/config.yaml"
+          test -d "dist/${SKIN_NAME}/dark"
+          test -d "dist/${SKIN_NAME}/light"
+
+          # cskin 必须是 zip 格式
+          (cd dist && zip -r -9 "${SKIN_NAME}.cskin" "${SKIN_NAME}")
+
+          unzip -l "dist/${SKIN_NAME}.cskin"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: T9_skin_Short_press_ios-cskin
+          path: dist/T9_skin_Short_press_ios.cskin
+          if-no-files-found: error
+
+      - name: Generate release notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TARGET_SHA: ${{ github.sha }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          notes="dist/release-notes.md"
+
+          # 获取上一个版本标签
+          prev_tag="$(git describe --tags --abbrev=0 "$TARGET_SHA" 2>/dev/null || true)"
+
+          changelog=""
+
+          if [ -n "$prev_tag" ]; then
+            changelog="$(
+              git log \
+                --pretty=format:'- [%h]('"${REPO_URL}"'/commit/%H) %s' \
+                --no-merges \
+                "${prev_tag}..${TARGET_SHA}" 2>/dev/null || true
+            )"
+          fi
+
+          # 没有新提交时显示最近20条提交
+          if [ -z "$changelog" ]; then
+            changelog="$(
+              git log -20 \
+                --pretty=format:'- [%h]('"${REPO_URL}"'/commit/%H) %s' \
+                "$TARGET_SHA" 2>/dev/null || true
+            )"
+          fi
+
+          if [ -z "$changelog" ]; then
+            changelog="- 本次版本没有新的提交记录"
+          fi
+
+          {
+            echo "T9_skin_Short_press_ios 九键皮肤（正式版本）"
+            echo ""
+            echo "版本号：${VERSION}"
+            echo ""
+            echo "下载 \`${SKIN_NAME}.cskin\`，分享到元书 App 导入即可。"
+            echo ""
+            echo "- 需要元书 1.6.0 或更高版本"
+            echo "- 输入方案请选择「中文九键」"
+            echo "- 皮肤名称：${SKIN_NAME}"
+            echo ""
+            echo "## 本次更新"
+            echo ""
+            printf '%s\n' "$changelog"
+            echo ""
+            echo "---"
+            echo ""
+            echo "提交记录：${REPO_URL}/commits/${VERSION}"
+          } > "$notes"
+
+          cat "$notes"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # 每次使用自动生成的独立版本号
+          tag_name: ${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: T9_skin_Short_press_ios ${{ steps.version.outputs.version }}
+
+          body_path: dist/release-notes.md
+
+          files: dist/T9_skin_Short_press_ios.cskin
+          fail_on_unmatched_files: true
+
+          # 禁止覆盖已有安装包
+          overwrite_files: false
+
+          # 自动标记最新版本，不删除历史版本
+          make_latest: true
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

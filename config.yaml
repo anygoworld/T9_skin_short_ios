@@ -1,0 +1,13 @@
+alphabetic:
+  phone:
+    landscape: "alphabeticLandscape"
+    portrait: "alphabeticPortrait"
+name: "T9_skin_Short_press_ios"
+numeric:
+  phone:
+    landscape: "landscapeNumeric"
+    portrait: "portraitNumeric"
+pinyin:
+  phone:
+    landscape: "landscapePinyin"
+    portrait: "portraitPinyin"
