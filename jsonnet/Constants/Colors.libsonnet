@@ -54,8 +54,9 @@ local standardButtonShadowColor = {
 };
 
 // 系统按键（如回车、删除等）背景颜色
+// light 使用 iOS 原生键盘功能键的蓝灰色，键帽仍为 #FFFFFF
 local systemButtonBackgroundColor = {
-  light: '#E6E6E6',
+  light: '#ADB3BD',
   dark: '#4C4C4C',
 };
 

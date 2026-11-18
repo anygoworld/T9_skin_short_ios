@@ -33,6 +33,7 @@ local newKeyboardBackgroundStyle(isDark=false, params={}) = {
 };
 
 // 字母键按钮背景样式
+// 底边色与键帽同色，去掉立体边缘，贴近 iOS 原生键盘的扁平键帽
 local alphabeticButtonBackgroundStyleName = 'alphabeticButtonBackgroundStyle';
 local newAlphabeticButtonBackgroundStyle(isDark=false, params={}) = {
   [alphabeticButtonBackgroundStyleName]: utils.newGeometryStyle({
@@ -40,8 +41,8 @@ local newAlphabeticButtonBackgroundStyle(isDark=false, params={}) = {
     normalColor: colors.standardButtonBackgroundColor,
     highlightColor: colors.standardButtonHighlightedBackgroundColor,
     cornerRadius: buttonCornerRadius,
-    normalLowerEdgeColor: colors.lowerEdgeOfButtonNormalColor,
-    highlightLowerEdgeColor: colors.lowerEdgeOfButtonHighlightColor,
+    normalLowerEdgeColor: colors.standardButtonBackgroundColor,
+    highlightLowerEdgeColor: colors.standardButtonHighlightedBackgroundColor,
   } + params, isDark),
 };
 
@@ -107,6 +108,7 @@ local newAlphabeticButtonHintStyle(isDark=false, params={}) =
   } + params, isDark);
 
 // 系统功能键按钮背景样式
+// 底边色与键帽同色，和字母键一样保持扁平
 local systemButtonBackgroundStyleName = 'systemButtonBackgroundStyle';
 local newSystemButtonBackgroundStyle(isDark=false, params={}) = {
   [systemButtonBackgroundStyleName]: utils.newGeometryStyle({
@@ -114,8 +116,8 @@ local newSystemButtonBackgroundStyle(isDark=false, params={}) = {
     normalColor: colors.systemButtonBackgroundColor,
     highlightColor: colors.systemButtonHighlightedBackgroundColor,
     cornerRadius: buttonCornerRadius,
-    normalLowerEdgeColor: colors.lowerEdgeOfButtonNormalColor,
-    highlightLowerEdgeColor: colors.lowerEdgeOfButtonHighlightColor,
+    normalLowerEdgeColor: colors.systemButtonBackgroundColor,
+    highlightLowerEdgeColor: colors.systemButtonHighlightedBackgroundColor,
   } + params, isDark),
 };
 
@@ -130,6 +132,7 @@ local newEnterButtonForegroundStyle(isDark=false, params={}) = {
 
 
 // 蓝色功能键按钮背景样式
+// 底边色与键帽同色，保持扁平
 local blueButtonBackgroundStyleName = 'blueButtonBackgroundStyle';
 local newBlueButtonBackgroundStyle(isDark=false, params={}) = {
   [blueButtonBackgroundStyleName]: utils.newGeometryStyle({
@@ -137,8 +140,8 @@ local newBlueButtonBackgroundStyle(isDark=false, params={}) = {
     normalColor: colors.blueButtonBackgroundColor,
     highlightColor: colors.blueButtonHighlightedBackgroundColor,
     cornerRadius: buttonCornerRadius,
-    normalLowerEdgeColor: colors.lowerEdgeOfButtonNormalColor,
-    highlightLowerEdgeColor: colors.lowerEdgeOfButtonHighlightColor,
+    normalLowerEdgeColor: colors.blueButtonBackgroundColor,
+    highlightLowerEdgeColor: colors.blueButtonHighlightedBackgroundColor,
   } + params, isDark),
 };
 

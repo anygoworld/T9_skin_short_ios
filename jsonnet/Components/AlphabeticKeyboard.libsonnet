@@ -64,6 +64,79 @@ local createRightTopBadgeForegroundStyle(isDark, params={}) = {
     basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, params.params + rightBadgeLabelUpParams),
 };
 
+// 回车/确定键事件通知（与 T9 九键逻辑一致）：
+// 1) returnKeyType 通知：覆盖所有回车类型，刷新常态文字并保持灰色底
+// 2) keyboardAction 通知：26 键是英文直接上屏（字母动作为 { symbol: 'a' }），
+//    没有 RIME 预编辑，preeditChanged 永远不会命中；因此改为监听字母按键，
+//    首次按下字母后锁定蓝色（仅 light 使用）
+// 3) 蓝色态前景按 $returnKeyType 取对应白字样式，保证提示词正确
+local enterReturnKeyNotification = {
+  alphabeticEnterReturnKeyChangedNotification: {
+    notificationType: 'returnKeyType',
+    returnKeyType: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    backgroundStyle: basicStyle.systemButtonBackgroundStyleName,
+    foregroundStyle: 'enterButtonForegroundStyle',
+  },
+};
+
+local enterBlueLabels = [
+  '换行', '前往', 'Google', '加入', 'next',
+  'route', '搜索', '发送', 'Yahoo', '完成',
+  'emergencyCall', 'continue',
+];
+
+local enterBlueTextStyles = {
+  ['alphabeticEnterBlueTextStyle' + i]: {
+    buttonStyleType: 'text',
+    fontSize: 16,
+    normalColor: '#FFFFFF',
+    highlightColor: '#FFFFFF',
+    text: enterBlueLabels[i],
+  }
+  for i in std.range(0, 11)
+};
+
+// 26 键无预编辑：监听 a-z / A-Z 的字母动作，命中后锁定蓝色
+local enterBlueChars =
+  [std.char(c) for c in std.range(97, 122)] +
+  [std.char(c) for c in std.range(65, 90)];
+
+local enterBlueForegroundStyle =
+  [
+    {
+      conditionKey: '$returnKeyType',
+      conditionValue: [i],
+      styleName: 'alphabeticEnterBlueTextStyle' + i,
+    }
+    for i in std.range(0, 11)
+  ];
+
+local enterBlueNotifications = {
+  ['alphabeticEnterBlueNotification_' + c]: {
+    notificationType: 'keyboardAction',
+    notificationKeyboardAction: { symbol: c },
+    // 命中后锁定：字母上屏、按键状态变化后仍保持蓝色提醒
+    lockedNotificationMatchState: true,
+    backgroundStyle: basicStyle.blueButtonBackgroundStyleName,
+    foregroundStyle: enterBlueForegroundStyle,
+  }
+  for c in enterBlueChars
+};
+
+local enterBlueNotificationNames =
+  ['alphabeticEnterBluePreeditNotification'] +
+  ['alphabeticEnterBlueNotification_' + c for c in enterBlueChars];
+
+// 兼容：若某些方案下 26 键仍有预编辑文本，同样锁定蓝色
+local enterBluePreeditNotification = {
+  alphabeticEnterBluePreeditNotification: {
+    notificationType: 'preeditChanged',
+    lockedNotificationMatchState: true,
+    backgroundStyle: basicStyle.blueButtonBackgroundStyleName,
+    foregroundStyle: enterBlueForegroundStyle,
+  },
+};
+
 
 // 标准26键布局
 local alphabeticKeyboardLayout(addSemicolon=false) = {
@@ -902,7 +975,22 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     {
       size:
         { width: { percentage: 0.2 } },
-    } + params.keyboard.enterButton.params
+    }
+    + params.keyboard.enterButton.params
+    + (
+      // light：与 T9 九键一致，首次字母输入后锁定蓝色并保持提醒
+      // dark：维持原有通知不变
+      if isDark then
+        {}
+      else
+        {
+          backgroundStyle: basicStyle.systemButtonBackgroundStyleName,
+          foregroundStyle: 'enterButtonForegroundStyle',
+          notification:
+            ['alphabeticEnterReturnKeyChangedNotification']
+            + enterBlueNotificationNames,
+        }
+    )
   )
 ;
 
@@ -926,6 +1014,16 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     + newKeyLayout(isDark, isPortrait, addSemicolon)
     + basicStyle.newEnterButtonForegroundStyle(isDark, params.keyboard.enterButton.params)
     + basicStyle.newCommitCandidateForegroundStyle(isDark, { text: '选定' })
+    // light 的回车蓝色通知与 T9 九键保持一致；dark 不追加
+    + (
+      if isDark then
+        {}
+      else
+        enterReturnKeyNotification
+        + enterBlueNotifications
+        + enterBluePreeditNotification
+        + enterBlueTextStyles
+    )
     // Notifications
     + basicStyle.returnKeyboardTypeChangedNotification
     + basicStyle.preeditChangedForEnterButtonNotification
