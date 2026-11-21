@@ -39,10 +39,10 @@ local alphabeticKeyboardLayout = {
         style: narrowVStackStyle.name,
         subviews: [
           {
-            Cell: params.keyboard.numericSymbolsCollection.name,
+            Cell: params.keyboard.pinyinButton.name,
           },
           {
-            Cell: params.keyboard.symbolicButton.name,
+            Cell: params.keyboard.numericSymbolsCollection.name,
           },
         ],
       },
@@ -61,7 +61,7 @@ local alphabeticKeyboardLayout = {
             Cell: params.keyboard.sevenButton.name,
           },
           {
-            Cell: params.keyboard.returnLastKeyboardButton.name,
+            Cell: params.keyboard.symbolicButton.name,
           },
         ],
       },
@@ -212,6 +212,14 @@ local newKeyLayout(isDark=false, isPortrait=false) =
     {
       size: { height: '1/4' },
     } + params.keyboard.symbolicButton.params
+  )
+
+  + basicStyle.newSystemButton(
+    params.keyboard.pinyinButton.name,
+    isDark,
+    {
+      size: { height: '1/4' },
+    } + params.keyboard.pinyinButton.params
   )
 
   + basicStyle.newSystemButton(
