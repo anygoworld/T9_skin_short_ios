@@ -73,7 +73,7 @@ jobs:
           set -euo pipefail
           jsonnet -m . jsonnet/main.jsonnet
 
-      - name: Build five expanded syllable bar height variants
+      - name: Build 42pt and 43pt expanded syllable bar variants
         shell: bash
         run: |
           set -euo pipefail
@@ -85,7 +85,7 @@ jobs:
 
           mkdir -p dist
 
-          for height in 35 40 45 50 55; do
+          for height in 42 43; do
             echo "Building expanded T9 syllable bar: ${height} pt"
             cp "$base_file" "$source_file"
 
@@ -119,10 +119,10 @@ jobs:
             unzip -t "dist/${SKIN_NAME}-${height}pt.cskin"
           done
 
-      - name: Upload five build artifacts
+      - name: Upload two build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: T9_skin_Short_press_ios-height-tests
+          name: T9_skin_Short_press_ios-42-43pt-tests
           path: dist/*.cskin
           if-no-files-found: error
 
