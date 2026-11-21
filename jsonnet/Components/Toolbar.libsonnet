@@ -66,9 +66,7 @@ local t9PinyinDividerSpacerName = 't9PinyinDividerSpacer';
 local t9PinyinRowStyleName = 't9PinyinRowStyle';
 local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
 local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
-// 纵向候选展开态：右侧纵向九键拼音音节列表（type: t9Symbols 在纵向布局下仍会刷新）
-local t9SymbolsExpandedName = 't9SymbolsCollectionExpanded';
-local t9SymbolsColumnStyleName = 't9SymbolsColumnStyle';
+// 纵向候选展开态继续复用横向 T9 音节集合，保持展开前后的筛选栏一致。
 
 local t9PinyinBarLayout = [
   {
@@ -115,13 +113,6 @@ local newT9PinyinBar(isDark=false) = {
     interCellSpacing: 36,
     maxColumns: 7,
   },
-  // 纵向候选展开态右侧的纵向拼音音节列表（type: t9Symbols）
-  [t9SymbolsExpandedName]: {
-    type: 't9Symbols',
-    backgroundStyle: basicStyle.systemButtonBackgroundStyleName,
-    insets: { top: 3, left: 4, bottom: 3, right: 4 },
-  },
-  [t9SymbolsColumnStyleName]: { size: { width: '1/7' } },
   t9PinyinCellStyle: {
     backgroundStyle: 't9PinyinCellBackgroundStyle',
     foregroundStyle: 't9PinyinCellForegroundStyle',
@@ -232,6 +223,20 @@ local t9PinyinBarVerticalCandidatesLayout = [
         {
           HStack: {
             subviews: [
+              { Cell: verticalCandidateCollectio// T9 纵向候选展开态：顶部保留横向拼音音节栏，下方显示纵向候选词与底部功能键。
+local t9PinyinBarVerticalCandidatesLayout = [
+  {
+    VStack: {
+      subviews: [
+        {
+          HStack: {
+            style: t9PinyinRowStyleName,
+            subviews: [{ Cell: t9HorizontalSymbolsName }],
+          },
+        },
+        {
+          HStack: {
+            subviews: [
               { Cell: verticalCandidateCollectionViewName },
             ],
           },
@@ -247,14 +252,6 @@ local t9PinyinBarVerticalCandidatesLayout = [
             ],
           },
         },
-      ],
-    },
-  },
-  {
-    VStack: {
-      style: t9SymbolsColumnStyleName,
-      subviews: [
-        { Cell: t9SymbolsExpandedName },
       ],
     },
   },
