@@ -73,57 +73,31 @@ jobs:
           set -euo pipefail
           jsonnet -m . jsonnet/main.jsonnet
 
-      - name: Build 39pt and 41pt expanded syllable bar variants
+      - name: Package 40pt skin
         shell: bash
         run: |
           set -euo pipefail
 
-          source_file="jsonnet/Components/Toolbar.libsonnet"
-          base_file="$RUNNER_TEMP/Toolbar.libsonnet.base"
-          cp "$source_file" "$base_file"
-          trap 'cp "$base_file" "$source_file"' EXIT
-
-          mkdir -p dist
-
-          for height in 39 41; do
-            echo "Building expanded T9 syllable bar: ${height} pt"
-            cp "$base_file" "$source_file"
-
-            HEIGHT="$height" python3 - <<'PY'
-          import os
-          from pathlib import Path
-          path = Path("jsonnet/Components/Toolbar.libsonnet")
-          content = path.read_text()
-          old = "[t9PinyinExpandedRowStyleName]: { size: { height: 60 } },"
-          new = f"[t9PinyinExpandedRowStyleName]: {{ size: {{ height: {os.environ['HEIGHT']} }} }},"
-          if content.count(old) != 1:
-              raise SystemExit("Could not uniquely locate expanded T9 height setting")
-          path.write_text(content.replace(old, new))
-          PY
-
-            jsonnet -m . jsonnet/main.jsonnet
-
-            package_dir="dist/package-${height}pt/${SKIN_NAME}"
-            mkdir -p "$package_dir"
-            for item in config.yaml demo.png README.md dark light jsonnet; do
-              if [ -e "$item" ]; then
-                cp -R "$item" "$package_dir/"
-              fi
-            done
-
-            test -f "$package_dir/config.yaml"
-            test -d "$package_dir/dark"
-            test -d "$package_dir/light"
-
-            (cd "dist/package-${height}pt" && zip -r -9 "../${SKIN_NAME}-${height}pt.cskin" "${SKIN_NAME}")
-            unzip -t "dist/${SKIN_NAME}-${height}pt.cskin"
+          package_dir="dist/package/${SKIN_NAME}"
+          mkdir -p "$package_dir"
+          for item in config.yaml demo.png README.md dark light jsonnet; do
+            if [ -e "$item" ]; then
+              cp -R "$item" "$package_dir/"
+            fi
           done
 
-      - name: Upload two build artifacts
+          test -f "$package_dir/config.yaml"
+          test -d "$package_dir/dark"
+          test -d "$package_dir/light"
+
+          (cd dist/package && zip -r -9 "../${SKIN_NAME}.cskin" "${SKIN_NAME}")
+          unzip -t "dist/${SKIN_NAME}.cskin"
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: T9_skin_Short_press_ios-42-43pt-tests
-          path: dist/*.cskin
+          name: T9_skin_Short_press_ios-40pt
+          path: dist/${SKIN_NAME}.cskin
           if-no-files-found: error
 
       - name: Generate release notes
