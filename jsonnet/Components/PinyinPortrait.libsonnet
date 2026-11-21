@@ -492,7 +492,7 @@ local extraParams = {
     };
 
     preedit.new(isDark)
-    + toolbar.new(isDark, {}, true)
+    + toolbar.new(isDark, {}, true, isPortrait)
     + narrowVStackStyle.style
     + wideVStackStyle.style
     + doubleWideVStackStyle.style
