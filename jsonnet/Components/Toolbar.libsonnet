@@ -67,6 +67,7 @@ local t9PinyinRowStyleName = 't9PinyinRowStyle';
 local t9PinyinExpandedRowStyleName = 't9PinyinExpandedRowStyle';
 local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
 local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
+local t9PinyinExpandedDividerSpacerRowStyleName = 't9PinyinExpandedDividerSpacerRowStyle';
 // 纵向候选展开态继续复用横向 T9 音节集合，保持展开前后的筛选栏一致。
 
 local t9PinyinBarLayout = [
@@ -152,6 +153,8 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
   [t9PinyinExpandedRowStyleName]: { size: { height: if isPortrait then 40 else 36 } },
   [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
   [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
+  // 展开态缩小分隔线与纵向候选词之间的留白。
+  [t9PinyinExpandedDividerSpacerRowStyleName]: { size: { height: 1 } },
 };
 
 local newHorizontalCandidatesCollectionView(isDark=false) = {
@@ -233,7 +236,7 @@ local t9PinyinBarVerticalCandidatesLayout = [
         },
         {
           HStack: {
-            style: t9PinyinDividerSpacerRowStyleName,
+            style: t9PinyinExpandedDividerSpacerRowStyleName,
             subviews: [{ Cell: t9PinyinDividerSpacerName }],
           },
         },
@@ -320,6 +323,7 @@ local newVerticalCandidateReturnButtonStyle(isDark) = {
   [verticalCandidateReturnButtonStyleName + 'ForegroundStyle']:
     utils.newSystemImageStyle(keyboardParams.verticalCandidateStyle.returnButton, isDark),
 };
+
 
 local newVerticalCandidateBackspaceButtonStyle(isDark) = {
   [verticalCandidateBackspaceButtonStyleName]:
