@@ -129,7 +129,7 @@ local doubleWideVStackStyle = {
 local doubleRowSize = { size: { height: '2/4' } };
 
 // 图 1 九宫格布局：5 列 × 4 行
-//   列1(窄)  : 123 / #+= / 中En(跨两行)
+//   列1(窄)  : 123 / #@¥ / ABC(跨两行)
 //   列2      : 1 / 4 / 7 / 0
 //   列3~4(双宽): 2 3 / 5 6 / 8 9 / 空格(跨两列)
 //   列5(窄)  : 退格 / 重输 / 换行(跨两行)
@@ -450,7 +450,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
     params.keyboard.backspaceButton.params,
   )
 
-  // 中/En：跨第 3、4 行的合并单元格
+  // ABC：跨第 3、4 行的合并单元格
   + basicStyle.newSystemButton(
     params.keyboard.alphabeticButton.name,
     isDark,
