@@ -110,6 +110,8 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏集合
   [t9HorizontalSymbolsName]: {
     type: 't9HorizontalSymbols',
+    // 集合本身也明确锁定高度，避免纵向候选展开时被父级布局压缩。
+    size: { height: 29.5 },
     backgroundStyle: toolbarBackgroundStyleName,
     cellStyle: 't9PinyinCellStyle',
     insets: { top: 2, left: 4, bottom: 2, right: 4 },
