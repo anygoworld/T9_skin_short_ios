@@ -104,7 +104,7 @@ local t9PinyinBarLayout = [
   },
 ];
 
-local newT9PinyinBar(isDark=false) = {
+local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏集合
   [t9HorizontalSymbolsName]: {
     type: 't9HorizontalSymbols',
@@ -369,7 +369,7 @@ local newToolbar(isDark=false, params={}, withT9PinyinBar=false, isPortrait=fals
   }
   + newHorizontalCandidatesCollectionView(isDark)
   + newExpandButton(isDark)
-  + (if withT9PinyinBar then newT9PinyinBar(isDark) else {})
+  + (if withT9PinyinBar then newT9PinyinBar(isDark, isPortrait) else {})
   + newVerticalCandidateCollectionStyle(isDark)
   + verticalLastRowStyle
   + newVerticalCandidatePageUpButtonStyle(isDark)
