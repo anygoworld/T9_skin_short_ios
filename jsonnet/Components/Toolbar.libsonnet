@@ -64,6 +64,7 @@ local t9HorizontalSymbolsName = 't9HorizontalSymbolsCollection';
 local t9PinyinDividerName = 't9PinyinDivider';
 local t9PinyinDividerSpacerName = 't9PinyinDividerSpacer';
 local t9PinyinRowStyleName = 't9PinyinRowStyle';
+local t9PinyinExpandedRowStyleName = 't9PinyinExpandedRowStyle';
 local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
 local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
 // 纵向候选展开态继续复用横向 T9 音节集合，保持展开前后的筛选栏一致。
@@ -147,6 +148,8 @@ local newT9PinyinBar(isDark=false) = {
   }, isDark),
   // 行高
   [t9PinyinRowStyleName]: { size: { height: 29.5 } },
+  // 纵向候选展开时加高音节栏，方便拇指点击；不影响收起状态。
+  [t9PinyinExpandedRowStyleName]: { size: { height: 44 } },
   [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
   [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
 };
@@ -218,8 +221,14 @@ local t9PinyinBarVerticalCandidatesLayout = [
       subviews: [
         {
           HStack: {
-            style: t9PinyinRowStyleName,
+            style: t9PinyinExpandedRowStyleName,
             subviews: [{ Cell: t9HorizontalSymbolsName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerName }],
           },
         },
         {
