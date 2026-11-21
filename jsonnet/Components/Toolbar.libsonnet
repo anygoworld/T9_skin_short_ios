@@ -258,14 +258,7 @@ local t9PinyinBarVerticalCandidatesLayout = [
 ];
 
 
-local newVerticalCandidateCollectionStyle(isDark) = {
-  [verticalCandidateCollectionViewName]:
-    {
-      type: 'verticalCandidates',
-      insets: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.insets,
-      maxRows: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.maxRows,
-      maxColumns: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.maxColumns,
-      candidateStyle: 'verticalCandidateStyle',
+candidateStyle: 'verticalCandidateStyle',
     } +
     utils.extractColors(
       keyboardParams.verticalCandidateStyle.candidateCollectionStyle,
