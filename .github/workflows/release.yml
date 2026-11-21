@@ -73,7 +73,7 @@ jobs:
           set -euo pipefail
           jsonnet -m . jsonnet/main.jsonnet
 
-      - name: Build 42pt and 43pt expanded syllable bar variants
+      - name: Build 39pt and 41pt expanded syllable bar variants
         shell: bash
         run: |
           set -euo pipefail
@@ -85,7 +85,7 @@ jobs:
 
           mkdir -p dist
 
-          for height in 42 43; do
+          for height in 39 41; do
             echo "Building expanded T9 syllable bar: ${height} pt"
             cp "$base_file" "$source_file"
 
