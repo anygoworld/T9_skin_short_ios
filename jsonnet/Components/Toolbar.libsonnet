@@ -149,7 +149,7 @@ local newT9PinyinBar(isDark=false) = {
   // 行高
   [t9PinyinRowStyleName]: { size: { height: 29.5 } },
   // 纵向候选展开时加高音节栏，方便拇指点击；不影响收起状态。
-  [t9PinyinExpandedRowStyleName]: { size: { height: 44 } },
+  [t9PinyinExpandedRowStyleName]: { size: { height: if isPortrait then 40 else 36 } },
   [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
   [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
 };
@@ -229,6 +229,12 @@ local t9PinyinBarVerticalCandidatesLayout = [
           HStack: {
             style: t9PinyinDividerRowStyleName,
             subviews: [{ Cell: t9PinyinDividerName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerSpacerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerSpacerName }],
           },
         },
         {
@@ -335,7 +341,7 @@ local newVerticalCandidateBackspaceButtonStyle(isDark) = {
 };
 
 
-local newToolbar(isDark=false, params={}, withT9PinyinBar=false) =
+local newToolbar(isDark=false, params={}, withT9PinyinBar=false, isPortrait=false) =
   {
     // T9 拼音键盘需要更高的工具栏，容纳音节候选栏 + 分隔线 + 间隔 + 候选词栏
     toolbarHeight: keyboardParams.toolbar.height + (if withT9PinyinBar then 34 else 0),
