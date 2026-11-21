@@ -153,8 +153,8 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏常态与展开态固定为相同高度；恢复紧凑的 29.5 pt，避免挤压横向候选词栏。
   // 横向候选词栏独立固定为 40 pt，两个区域不再争抢高度。
   [t9PinyinRowStyleName]: { size: { height: 29.5 } },
-  // 展开态先用 60 pt 补偿 Hamster3 对音节栏的压缩；后续按设备实测校准。
-  [t9PinyinExpandedRowStyleName]: { size: { height: 60 } },
+  // 展开态采用实测较合适的 40 pt，常态音节栏保持 29.5 pt。
+  [t9PinyinExpandedRowStyleName]: { size: { height: 40 } },
   [t9HorizontalCandidatesRowStyleName]: { size: { height: 40 } },
   [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
   [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
