@@ -928,7 +928,7 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     }
     + params.keyboard.numericButton.params {
       action: { keyboardType: 'pinyin' },
-      text: 'En/中',
+      text: '拼音',
     }
   )
 
@@ -943,7 +943,7 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     }
     + {
       action: { keyboardType: 'symbolic' },
-      text: '#+=',
+      text: '#@¥',
       fontSize: 16,
     },
     needHint=false,
