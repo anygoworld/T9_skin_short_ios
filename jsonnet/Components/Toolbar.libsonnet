@@ -64,7 +64,6 @@ local t9HorizontalSymbolsName = 't9HorizontalSymbolsCollection';
 local t9PinyinDividerName = 't9PinyinDivider';
 local t9PinyinDividerSpacerName = 't9PinyinDividerSpacer';
 local t9PinyinRowStyleName = 't9PinyinRowStyle';
-local t9PinyinExpandedRowStyleName = 't9PinyinExpandedRowStyle';
 local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
 local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
 local t9PinyinExpandedDividerSpacerRowStyleName = 't9PinyinExpandedDividerSpacerRowStyle';
@@ -148,9 +147,8 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
     highlightColor: { light: '#ffffff00', dark: '#00000000' },
   }, isDark),
   // 行高
-  [t9PinyinRowStyleName]: { size: { height: 29.5 } },
-  // 纵向候选展开时加高音节栏，方便拇指点击；不影响收起状态。
-  [t9PinyinExpandedRowStyleName]: { size: { height: if isPortrait then 40 else 36 } },
+  // 常态与展开态共用同一行高，避免展开/收起时音节栏发生高度跳变。
+  [t9PinyinRowStyleName]: { size: { height: if isPortrait then 40 else 36 } },
   [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
   [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
   // 展开态缩小分隔线与纵向候选词之间的留白。
@@ -224,7 +222,7 @@ local t9PinyinBarVerticalCandidatesLayout = [
       subviews: [
         {
           HStack: {
-            style: t9PinyinExpandedRowStyleName,
+            style: t9PinyinRowStyleName,
             subviews: [{ Cell: t9HorizontalSymbolsName }],
           },
         },
