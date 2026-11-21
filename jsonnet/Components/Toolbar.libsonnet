@@ -211,19 +211,7 @@ local verticalCandidatesLayout = [
   },
 ];
 
-// 带拼音音节栏的纵向候选布局（借鉴官方 T9 皮肤思路）：
-// 展开纵向候选栏时，工具栏区 / 按键区 / 横向候选栏会被隐藏。
-// 这里把纵向区拆成「左：候选网格 + 底排功能键」与「右：纵向拼音音节列表」两列，
-// 右侧使用 type: t9Symbols 的纵向九键符号列表——它在纵向布局下仍会刷新音节数据，
-// 从而在展开态也能点击音节二次筛选候选词。t9HorizontalSymbols 在纵向布局不刷新，故不用它。
-local t9PinyinBarVerticalCandidatesLayout = [
-  {
-    VStack: {
-      subviews: [
-        {
-          HStack: {
-            subviews: [
-              { Cell: verticalCandidateCollectio// T9 纵向候选展开态：顶部保留横向拼音音节栏，下方显示纵向候选词与底部功能键。
+// T9 纵向候选展开态：顶部保留横向拼音音节栏，下方显示纵向候选词与底部功能键。
 local t9PinyinBarVerticalCandidatesLayout = [
   {
     VStack: {
@@ -258,7 +246,14 @@ local t9PinyinBarVerticalCandidatesLayout = [
 ];
 
 
-candidateStyle: 'verticalCandidateStyle',
+local newVerticalCandidateCollectionStyle(isDark) = {
+  [verticalCandidateCollectionViewName]:
+    {
+      type: 'verticalCandidates',
+      insets: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.insets,
+      maxRows: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.maxRows,
+      maxColumns: keyboardParams.verticalCandidateStyle.candidateCollectionStyle.maxColumns,
+      candidateStyle: 'verticalCandidateStyle',
     } +
     utils.extractColors(
       keyboardParams.verticalCandidateStyle.candidateCollectionStyle,
