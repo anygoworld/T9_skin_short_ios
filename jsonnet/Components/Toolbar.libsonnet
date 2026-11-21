@@ -64,6 +64,7 @@ local t9HorizontalSymbolsName = 't9HorizontalSymbolsCollection';
 local t9PinyinDividerName = 't9PinyinDivider';
 local t9PinyinDividerSpacerName = 't9PinyinDividerSpacer';
 local t9PinyinRowStyleName = 't9PinyinRowStyle';
+local t9PinyinExpandedRowStyleName = 't9PinyinExpandedRowStyle';
 local t9HorizontalCandidatesRowStyleName = 't9HorizontalCandidatesRowStyle';
 local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
 local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
@@ -76,7 +77,7 @@ local t9PinyinBarLayout = [
       subviews: [
         {
           HStack: {
-            style: t9PinyinRowStyleName,
+            style: t9PinyinExpandedRowStyleName,
             subviews: [{ Cell: t9HorizontalSymbolsName }],
           },
         },
@@ -110,8 +111,6 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏集合
   [t9HorizontalSymbolsName]: {
     type: 't9HorizontalSymbols',
-    // 集合本身也明确锁定高度，避免纵向候选展开时被父级布局压缩。
-    size: { height: 29.5 },
     backgroundStyle: toolbarBackgroundStyleName,
     cellStyle: 't9PinyinCellStyle',
     insets: { top: 2, left: 4, bottom: 2, right: 4 },
@@ -154,6 +153,8 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏常态与展开态固定为相同高度；恢复紧凑的 29.5 pt，避免挤压横向候选词栏。
   // 横向候选词栏独立固定为 40 pt，两个区域不再争抢高度。
   [t9PinyinRowStyleName]: { size: { height: 29.5 } },
+  // 展开态先用 60 pt 补偿 Hamster3 对音节栏的压缩；后续按设备实测校准。
+  [t9PinyinExpandedRowStyleName]: { size: { height: 60 } },
   [t9HorizontalCandidatesRowStyleName]: { size: { height: 40 } },
   [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
   [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
