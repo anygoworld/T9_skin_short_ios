@@ -77,7 +77,7 @@ local t9PinyinBarLayout = [
       subviews: [
         {
           HStack: {
-            style: t9PinyinExpandedRowStyleName,
+            style: t9PinyinRowStyleName,
             subviews: [{ Cell: t9HorizontalSymbolsName }],
           },
         },
@@ -229,7 +229,7 @@ local t9PinyinBarVerticalCandidatesLayout = [
       subviews: [
         {
           HStack: {
-            style: t9PinyinRowStyleName,
+            style: t9PinyinExpandedRowStyleName,
             subviews: [{ Cell: t9HorizontalSymbolsName }],
           },
         },
