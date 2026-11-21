@@ -7,6 +7,8 @@ on:
     paths:
       - 'jsonnet/**'
       - '.github/workflows/release.yml'
+      - 'README.md'
+      - 'demo.png'
   # 仍保留手动发布入口
   workflow_dispatch:
 
