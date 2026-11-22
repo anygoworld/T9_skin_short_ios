@@ -97,7 +97,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: T9_skin_Short_press_ios-40pt
-          path: dist/${SKIN_NAME}.cskin
+          # with: 里不会展开 shell 变量 ${SKIN_NAME}，必须用表达式 ${{ env.SKIN_NAME }}
+          path: dist/${{ env.SKIN_NAME }}.cskin
           if-no-files-found: error
 
       - name: Generate release notes
