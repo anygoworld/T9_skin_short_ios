@@ -101,7 +101,27 @@ local enterBlueChars =
   [std.char(c) for c in std.range(97, 122)] +
   [std.char(c) for c in std.range(65, 90)];
 
-local enterBlueForegroundStyle =
+// 蓝色态前景写法（三选一）：
+//  'conditions'：12 条 $returnKeyType 条件数组原样写进每个字母通知（最初写法，
+//                52 个字母通知合计约 75KB，light 26 键文件约 128KB，切换偏慢）。
+//  'anchor'    ：条件数组只完整写一次，其余通知用 YAML 锚点（&/*）引用，
+//                解析结果与 conditions 完全相同，文件约减半。
+//  'variable'  ：直接使用 blueButtonForegroundStyle（文字为 $returnKeyType），文件最小。
+// 注：JavaScript 写法在通知里不生效（实测蓝色块上文字消失），已弃用。
+// 实测 variable 与 anchor 均正常，variable 文件最小、26 键与 T9 互切最灵敏，选用 variable。
+local enterBlueForegroundMode = 'variable';
+
+// 26 键性能相关开关（排查 26 键 → T9 来回切换卡顿用）：
+//  enterBlueOnLetter：浅色模式下首次输入字母后回车锁定蓝色，需要在回车键上挂 52 个字母监听通知。
+//                     false 时与深色模式一致：只按输入框类型显示蓝色，不再监听字母。
+//  matchT9Height    ：26 键顶部使用与 T9 相同的预编辑区 + 音节栏 + 候选栏，总高度与 T9 一致，
+//                     来回切换时键盘不需要改变高度。
+local enterBlueOnLetter = true;
+// 实测：高度一致后 26 键 ↔ T9 来回切换不再卡顿（卡顿来自切换时键盘高度变化），选用 true。
+local matchT9Height = true;
+local enterBlueAnchorName = 'enterBlueFg';
+
+local enterBlueForegroundStyleConditions =
   [
     {
       conditionKey: '$returnKeyType',
@@ -110,6 +130,29 @@ local enterBlueForegroundStyle =
     }
     for i in std.range(0, 11)
   ];
+
+local enterBlueForegroundStyle =
+  if enterBlueForegroundMode == 'variable'
+  then basicStyle.blueButtonForegroundStyleName
+  else enterBlueForegroundStyleConditions;
+
+// 输出 YAML 文本。anchor 模式下：第一次出现的条件数组加锚点 &enterBlueFg，
+// 后面相同的数组全部替换为别名 *enterBlueFg（JSON 本身就是合法的 YAML 流式写法）。
+local manifestWithAnchor(content) =
+  local text = std.toString(content);
+  if enterBlueForegroundMode != 'anchor' then text
+  else
+    local fragment = std.toString(enterBlueForegroundStyleConditions);
+    local alias = '*' + enterBlueAnchorName;
+    local replaced = std.strReplace(text, fragment, alias);
+    local idx = std.findSubstr(alias, replaced);
+    if std.length(idx) == 0 then text
+    else
+      local i = idx[0];
+      local tailStart = i + std.length(alias);
+      std.substr(replaced, 0, i)
+      + '&' + enterBlueAnchorName + ' ' + fragment
+      + std.substr(replaced, tailStart, std.length(replaced) - tailStart);
 
 local enterBlueNotifications = {
   ['alphabeticEnterBlueNotification_' + c]: {
@@ -980,7 +1023,7 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     + (
       // light：与 T9 九键一致，首次字母输入后锁定蓝色并保持提醒
       // dark：维持原有通知不变
-      if isDark then
+      if isDark || !enterBlueOnLetter then
         {}
       else
         {
@@ -995,6 +1038,9 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
 ;
 
 {
+  // 生成 YAML 文本（供 main.jsonnet 使用）
+  manifest(content): manifestWithAnchor(content),
+
   new(isDark, isPortrait, addSemicolon=false):
     local insets = if isPortrait then params.keyboard.button.backgroundInsets.iPhone.portrait else params.keyboard.button.backgroundInsets.iPhone.landscape;
 
@@ -1003,7 +1049,7 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     };
 
     preedit.new(isDark)
-    + toolbar.new(isDark)
+    + toolbar.new(isDark, {}, matchT9Height, isPortrait)
     + basicStyle.newKeyboardBackgroundStyle(isDark)
     + basicStyle.newAlphabeticButtonBackgroundStyle(isDark, extraParams)
     + basicStyle.newAlphabeticButtonHintStyle(isDark)
@@ -1016,16 +1062,20 @@ local newKeyLayout(isDark=false, isPortrait=true, addSemicolon=true) =
     + basicStyle.newCommitCandidateForegroundStyle(isDark, { text: '选定' })
     // light 的回车蓝色通知与 T9 九键保持一致；dark 不追加
     + (
-      if isDark then
+      if isDark || !enterBlueOnLetter then
         {}
       else
         enterReturnKeyNotification
         + enterBlueNotifications
         + enterBluePreeditNotification
-        + enterBlueTextStyles
+        + (if enterBlueForegroundMode == 'variable' then {} else enterBlueTextStyles)
     )
     // Notifications
     + basicStyle.returnKeyboardTypeChangedNotification
     + basicStyle.preeditChangedForEnterButtonNotification
-    + basicStyle.preeditChangedForSpaceButtonNotification,
+    + basicStyle.preeditChangedForSpaceButtonNotification
+    // 26 键去掉顶部预编辑区，但保留 40pt 的横向候选词栏（工具栏）：
+    // 在 T9 打字中（有未上屏拼音）直接按 ABC 切过来时，候选词显示在候选栏里，
+    // 不会再叠到 QWERTY 按键上。
+    + (if matchT9Height then {} else { preeditHeight: 0 }),
 }

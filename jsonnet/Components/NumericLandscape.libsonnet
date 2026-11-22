@@ -322,7 +322,9 @@ local extraParams = {
     };
 
     preedit.new(isDark)
-    + toolbar.new(isDark)
+    // 与 T9 拼音键盘使用同一套工具栏（音节栏 + 候选词栏，高度一致），
+    // 从 T9 按「123」切到数字键盘时整体高度不变、按键位置不变，没有落差感。
+    + toolbar.new(isDark, {}, true, isPortrait)
     + halfVStackStyle.style
     + narrowVStackStyle.style
     + wideVStackStyle.style
