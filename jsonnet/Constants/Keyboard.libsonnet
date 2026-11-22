@@ -569,7 +569,7 @@ local fonts = import 'Fonts.libsonnet';
       name: 'symbolicButton',
       params: {
         action: { keyboardType: 'symbolic' },
-        text: '#+=',
+        text: '#@¥',
       },
     },
 
@@ -593,7 +593,7 @@ local fonts = import 'Fonts.libsonnet';
       name: 'alphabeticButton',
       params: {
         action: { keyboardType: 'alphabetic' },
-        assetImageName: 'chineseState2',
+        text: 'ABC',
       },
     },
 

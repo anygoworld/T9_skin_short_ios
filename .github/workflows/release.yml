@@ -1,7 +1,15 @@
 name: Build T9_skin_Short_press_ios skin
 
 on:
-  # 只有手动点击 Run workflow 才会发布
+  # Jsonnet 源码或发布流程更新后，自动编译并发布新版本
+  push:
+    branches: [main]
+    paths:
+      - 'jsonnet/**'
+      - '.github/workflows/release.yml'
+      - 'README.md'
+      - 'demo.png'
+  # 仍保留手动发布入口
   workflow_dispatch:
 
 permissions:
@@ -54,35 +62,43 @@ jobs:
           echo "本次自动生成版本：$version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Package .cskin
+      - name: Install Jsonnet
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jsonnet
+
+      - name: Compile Jsonnet configs
+        shell: bash
+        run: |
+          set -euo pipefail
+          jsonnet -m . jsonnet/main.jsonnet
+
+      - name: Package 40pt skin
         shell: bash
         run: |
           set -euo pipefail
 
-          rm -rf dist
-          mkdir -p "dist/${SKIN_NAME}"
-
-          # 只打包皮肤需要的文件
+          package_dir="dist/package/${SKIN_NAME}"
+          mkdir -p "$package_dir"
           for item in config.yaml demo.png README.md dark light jsonnet; do
             if [ -e "$item" ]; then
-              cp -R "$item" "dist/${SKIN_NAME}/"
+              cp -R "$item" "$package_dir/"
             fi
           done
 
-          test -f "dist/${SKIN_NAME}/config.yaml"
-          test -d "dist/${SKIN_NAME}/dark"
-          test -d "dist/${SKIN_NAME}/light"
+          test -f "$package_dir/config.yaml"
+          test -d "$package_dir/dark"
+          test -d "$package_dir/light"
 
-          # cskin 必须是 zip 格式
-          (cd dist && zip -r -9 "${SKIN_NAME}.cskin" "${SKIN_NAME}")
-
-          unzip -l "dist/${SKIN_NAME}.cskin"
+          (cd dist/package && zip -r -9 "../${SKIN_NAME}.cskin" "${SKIN_NAME}")
+          unzip -t "dist/${SKIN_NAME}.cskin"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: T9_skin_Short_press_ios-cskin
-          path: dist/T9_skin_Short_press_ios.cskin
+          name: T9_skin_Short_press_ios-40pt
+          # with: 里不会展开 shell 变量 ${SKIN_NAME}，必须用表达式 ${{ env.SKIN_NAME }}
+          path: dist/${{ env.SKIN_NAME }}.cskin
           if-no-files-found: error
 
       - name: Generate release notes
@@ -155,7 +171,7 @@ jobs:
 
           body_path: dist/release-notes.md
 
-          files: dist/T9_skin_Short_press_ios.cskin
+          files: dist/*.cskin
           fail_on_unmatched_files: true
 
           # 禁止覆盖已有安装包

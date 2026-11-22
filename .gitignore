@@ -1,0 +1,2 @@
+# 本地打包生成的皮肤包，不提交（发布由 GitHub Actions 生成）
+*.cskin

@@ -64,11 +64,41 @@ local t9HorizontalSymbolsName = 't9HorizontalSymbolsCollection';
 local t9PinyinDividerName = 't9PinyinDivider';
 local t9PinyinDividerSpacerName = 't9PinyinDividerSpacer';
 local t9PinyinRowStyleName = 't9PinyinRowStyle';
+local t9HorizontalCandidatesRowStyleName = 't9HorizontalCandidatesRowStyle';
 local t9PinyinDividerRowStyleName = 't9PinyinDividerRowStyle';
 local t9PinyinDividerSpacerRowStyleName = 't9PinyinDividerSpacerRowStyle';
-// 纵向候选展开态：右侧纵向九键拼音音节列表（type: t9Symbols 在纵向布局下仍会刷新）
-local t9SymbolsExpandedName = 't9SymbolsCollectionExpanded';
-local t9SymbolsColumnStyleName = 't9SymbolsColumnStyle';
+// 纵向候选展开态继续复用横向 T9 音节集合，保持展开前后的筛选栏一致。
+
+// 防跳动：常态（横向候选）与展开态（纵向候选）的顶部「音节栏 + 分隔线 + 间隔」
+// 必须使用完全相同的容器内边距和行高，切换时音节栏才不会被压缩或上下错位。
+//  - 两种状态的容器 insets 统一为 0（原先常态有 top 8 / bottom 1 / left 3，展开态没有，
+//    导致常态 74pt 的行高总和被塞进 65pt 的可用高度里而被等比压缩）。
+//  - 两种状态共用同一组行样式，不再区分 Expanded 版本。
+//  - 常态各行高度之和恰好等于 toolbarHeight，不再发生压缩。
+local t9PinyinBarMetrics = {
+  // 实机对比 34/36/38/40/42 后选定 36 pt
+  pinyinRowHeight: 36,
+  dividerHeight: 0.5,
+  dividerSpacerHeight: 1.5,
+  candidatesRowHeight: 40,
+};
+local t9PinyinBarTotalHeight =
+  t9PinyinBarMetrics.pinyinRowHeight + t9PinyinBarMetrics.dividerHeight
+  + t9PinyinBarMetrics.dividerSpacerHeight + t9PinyinBarMetrics.candidatesRowHeight;
+local t9PinyinBarContainerInsets = { top: 0, left: 0, bottom: 0, right: 0 };
+
+// 音节栏（mi ni m n o …）的间距参数。
+// 注意：实测（2026-11）元书的 t9HorizontalSymbols 音节栏不读取皮肤里的间距、宽度、
+// 字号等设置，以下参数及 t9PinyinCellStyle / t9PinyinCellForegroundStyle 修改后均无效果，
+// 音节间距由元书内部决定。保留这些值以便元书日后开放配置时直接调整。
+//  interCellSpacing：相邻两个音节之间的空隙
+//  cellPaddingX    ：每个音节文字左右的留白
+//  maxColumns      ：一屏最多显示的音节个数
+local t9PinyinSymbolSpacing = {
+  interCellSpacing: 36,
+  cellPaddingX: 24,
+  maxColumns: 7,
+};
 
 local t9PinyinBarLayout = [
   {
@@ -94,6 +124,7 @@ local t9PinyinBarLayout = [
         },
         {
           HStack: {
+            style: t9HorizontalCandidatesRowStyleName,
             subviews: [
               { Cell: horizontalCandidatesCollectionViewName },
               { Cell: expandButtonName },
@@ -105,27 +136,20 @@ local t9PinyinBarLayout = [
   },
 ];
 
-local newT9PinyinBar(isDark=false) = {
+local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏集合
   [t9HorizontalSymbolsName]: {
     type: 't9HorizontalSymbols',
     backgroundStyle: toolbarBackgroundStyleName,
     cellStyle: 't9PinyinCellStyle',
     insets: { top: 2, left: 4, bottom: 2, right: 4 },
-    interCellSpacing: 36,
-    maxColumns: 7,
+    interCellSpacing: t9PinyinSymbolSpacing.interCellSpacing,
+    maxColumns: t9PinyinSymbolSpacing.maxColumns,
   },
-  // 纵向候选展开态右侧的纵向拼音音节列表（type: t9Symbols）
-  [t9SymbolsExpandedName]: {
-    type: 't9Symbols',
-    backgroundStyle: basicStyle.systemButtonBackgroundStyleName,
-    insets: { top: 3, left: 4, bottom: 3, right: 4 },
-  },
-  [t9SymbolsColumnStyleName]: { size: { width: '1/7' } },
   t9PinyinCellStyle: {
     backgroundStyle: 't9PinyinCellBackgroundStyle',
     foregroundStyle: 't9PinyinCellForegroundStyle',
-    insets: { left: 24, right: 24 },
+    insets: { left: t9PinyinSymbolSpacing.cellPaddingX, right: t9PinyinSymbolSpacing.cellPaddingX },
   },
   t9PinyinCellBackgroundStyle: utils.newGeometryStyle({
     normalColor: { light: '#ffffff00', dark: '#00000000' },
@@ -155,9 +179,12 @@ local newT9PinyinBar(isDark=false) = {
     highlightColor: { light: '#ffffff00', dark: '#00000000' },
   }, isDark),
   // 行高
-  [t9PinyinRowStyleName]: { size: { height: 29.5 } },
-  [t9PinyinDividerRowStyleName]: { size: { height: 0.5 } },
-  [t9PinyinDividerSpacerRowStyleName]: { size: { height: 4 } },
+  // 音节栏、分隔线、间隔在常态与展开态共用同一组样式，保证切换时位置与高度完全一致。
+  // 常态四行之和 = toolbarHeight，不会被压缩。
+  [t9PinyinRowStyleName]: { size: { height: t9PinyinBarMetrics.pinyinRowHeight } },
+  [t9PinyinDividerRowStyleName]: { size: { height: t9PinyinBarMetrics.dividerHeight } },
+  [t9PinyinDividerSpacerRowStyleName]: { size: { height: t9PinyinBarMetrics.dividerSpacerHeight } },
+  [t9HorizontalCandidatesRowStyleName]: { size: { height: t9PinyinBarMetrics.candidatesRowHeight } },
 };
 
 local newHorizontalCandidatesCollectionView(isDark=false) = {
@@ -220,15 +247,30 @@ local verticalCandidatesLayout = [
   },
 ];
 
-// 带拼音音节栏的纵向候选布局（借鉴官方 T9 皮肤思路）：
-// 展开纵向候选栏时，工具栏区 / 按键区 / 横向候选栏会被隐藏。
-// 这里把纵向区拆成「左：候选网格 + 底排功能键」与「右：纵向拼音音节列表」两列，
-// 右侧使用 type: t9Symbols 的纵向九键符号列表——它在纵向布局下仍会刷新音节数据，
-// 从而在展开态也能点击音节二次筛选候选词。t9HorizontalSymbols 在纵向布局不刷新，故不用它。
+// T9 纵向候选展开态：顶部保留横向拼音音节栏，下方显示纵向候选词与底部功能键。
+// 顶部三行与常态完全相同（同一组样式），展开/收起时音节栏不跳动。
 local t9PinyinBarVerticalCandidatesLayout = [
   {
     VStack: {
       subviews: [
+        {
+          HStack: {
+            style: t9PinyinRowStyleName,
+            subviews: [{ Cell: t9HorizontalSymbolsName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerSpacerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerSpacerName }],
+          },
+        },
         {
           HStack: {
             subviews: [
@@ -247,14 +289,6 @@ local t9PinyinBarVerticalCandidatesLayout = [
             ],
           },
         },
-      ],
-    },
-  },
-  {
-    VStack: {
-      style: t9SymbolsColumnStyleName,
-      subviews: [
-        { Cell: t9SymbolsExpandedName },
       ],
     },
   },
@@ -321,6 +355,7 @@ local newVerticalCandidateReturnButtonStyle(isDark) = {
     utils.newSystemImageStyle(keyboardParams.verticalCandidateStyle.returnButton, isDark),
 };
 
+
 local newVerticalCandidateBackspaceButtonStyle(isDark) = {
   [verticalCandidateBackspaceButtonStyleName]:
     utils.newBackgroundStyle(style=basicStyle.systemButtonBackgroundStyleName)
@@ -341,20 +376,26 @@ local newVerticalCandidateBackspaceButtonStyle(isDark) = {
 };
 
 
-local newToolbar(isDark=false, params={}, withT9PinyinBar=false) =
+local newToolbar(isDark=false, params={}, withT9PinyinBar=false, isPortrait=false) =
   {
-    // T9 拼音键盘需要更高的工具栏，容纳音节候选栏 + 分隔线 + 间隔 + 候选词栏
-    toolbarHeight: keyboardParams.toolbar.height + (if withT9PinyinBar then 34 else 0),
+    // T9 拼音键盘需要更高的工具栏，容纳音节候选栏 + 分隔线 + 间隔 + 候选词栏；
+    // 高度直接取各行之和，保证常态下各行不被压缩。
+    toolbarHeight: if withT9PinyinBar then t9PinyinBarTotalHeight else keyboardParams.toolbar.height,
     toolbarStyle: utils.newBackgroundStyle(style=toolbarBackgroundStyleName),
     toolbarLayout: {},
     horizontalCandidatesStyle:
-      utils.extractProperties(keyboardParams.horizontalCandidateStyle + params, ['insets'])
+      (if withT9PinyinBar
+       then { insets: t9PinyinBarContainerInsets }
+       else utils.extractProperties(keyboardParams.horizontalCandidateStyle + params, ['insets']))
       {
         backgroundStyle: horizontalCandidateBackgroundStyleName,
       },
     horizontalCandidatesLayout: if withT9PinyinBar then t9PinyinBarLayout else horizontalCandidatesLayout,
     verticalCandidatesStyle:
-      utils.extractProperties(keyboardParams.verticalCandidateStyle + params, ['insets'])
+      // T9 展开态与常态使用同一套容器内边距，顶部音节栏位置保持一致
+      (if withT9PinyinBar
+       then { insets: t9PinyinBarContainerInsets }
+       else utils.extractProperties(keyboardParams.verticalCandidateStyle + params, ['insets']))
       {
         backgroundStyle: verticalCandidateBackgroundStyleName,
       },
@@ -369,7 +410,7 @@ local newToolbar(isDark=false, params={}, withT9PinyinBar=false) =
   }
   + newHorizontalCandidatesCollectionView(isDark)
   + newExpandButton(isDark)
-  + (if withT9PinyinBar then newT9PinyinBar(isDark) else {})
+  + (if withT9PinyinBar then newT9PinyinBar(isDark, isPortrait) else {})
   + newVerticalCandidateCollectionStyle(isDark)
   + verticalLastRowStyle
   + newVerticalCandidatePageUpButtonStyle(isDark)

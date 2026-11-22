@@ -57,10 +57,10 @@ local alphabeticKeyboardLayout = {
               style: narrowVStackStyle.name,
               subviews: [
                 {
-                  Cell: params.keyboard.numericSymbolsCollection.name,
+                  Cell: params.keyboard.pinyinButton.name,
                 },
                 {
-                  Cell: params.keyboard.symbolicButton.name,
+                  Cell: params.keyboard.numericSymbolsCollection.name,
                 },
               ],
             },
@@ -79,7 +79,7 @@ local alphabeticKeyboardLayout = {
                   Cell: params.keyboard.sevenButton.name,
                 },
                 {
-                  Cell: params.keyboard.returnLastKeyboardButton.name,
+                  Cell: params.keyboard.symbolicButton.name,
                 },
               ],
             },
@@ -263,6 +263,14 @@ local newKeyLayout(isDark=false, isPortrait=false) =
   )
 
   + basicStyle.newSystemButton(
+    params.keyboard.pinyinButton.name,
+    isDark,
+    {
+      size: { height: '1/4' },
+    } + params.keyboard.pinyinButton.params
+  )
+
+  + basicStyle.newSystemButton(
     params.keyboard.returnLastKeyboardButton.name,
     isDark,
     params.keyboard.returnLastKeyboardButton.params
@@ -314,7 +322,9 @@ local extraParams = {
     };
 
     preedit.new(isDark)
-    + toolbar.new(isDark)
+    // 与 T9 拼音键盘使用同一套工具栏（音节栏 + 候选词栏，高度一致），
+    // 从 T9 按「123」切到数字键盘时整体高度不变、按键位置不变，没有落差感。
+    + toolbar.new(isDark, {}, true, isPortrait)
     + halfVStackStyle.style
     + narrowVStackStyle.style
     + wideVStackStyle.style
