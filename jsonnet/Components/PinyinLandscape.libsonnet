@@ -29,11 +29,28 @@ local createTopBadgeForegroundStyle(isDark, params={}) = {
     basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, params.params + topBadgeLabelUpParams),
 };
 
-// 按键定义里有 swipeDownText 时生成下滑提示样式
+// 有 swipeDownText（文字）或 swipeDownSystemImageName（图标）时才把下滑提示样式加进 foregroundStyle
+// （没有下滑功能的键不显示下方小字）
+local hasSwipeDownLabel(p) =
+  std.objectHas(p, 'swipeDownText') || std.objectHas(p, 'swipeDownSystemImageName');
+
+local swipeDownLabelStyleNames(button) =
+  if hasSwipeDownLabel(button.params) then [button.name + 'SwipeDownForegroundStyle'] else [];
+
+// 生成下滑提示样式：优先用图标（如 Tab），否则用文字
 local createSwipeDownLabelForegroundStyle(isDark, params={}) =
-  if std.objectHas(params.params, 'swipeDownText') then {
+  if hasSwipeDownLabel(params.params) then {
     [params.name + 'SwipeDownForegroundStyle']:
-      basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, { text: params.params.swipeDownText } + bottomLabelDownParams),
+      basicStyle.newAlphabeticButtonSwipeForegroundStyle(
+        isDark,
+        (
+          if std.objectHas(params.params, 'swipeDownSystemImageName') then
+            { systemImageName: params.params.swipeDownSystemImageName }
+          else
+            { text: params.params.swipeDownText }
+        )
+        + bottomLabelDownParams
+      ),
   } else {};
 
 local createButtonForegroundStyle(isDark, params={}) = {
@@ -326,8 +343,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9OneButton.name + 'ForegroundStyle',
         params.keyboard.oneButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9OneButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9OneButton),
     }
     + {
       foregroundStyle:
@@ -349,8 +365,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9TwoButton.name + 'ForegroundStyle',
         params.keyboard.twoButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9TwoButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9TwoButton),
     }
     + {
       foregroundStyle:
@@ -372,8 +387,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9ThreeButton.name + 'ForegroundStyle',
         params.keyboard.threeButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9ThreeButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9ThreeButton),
     }
     + {
       foregroundStyle:
@@ -395,8 +409,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9FourButton.name + 'ForegroundStyle',
         params.keyboard.fourButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9FourButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9FourButton),
     }
     + {
       foregroundStyle:
@@ -418,8 +431,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9FiveButton.name + 'ForegroundStyle',
         params.keyboard.fiveButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9FiveButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9FiveButton),
     }
     + {
       foregroundStyle:
@@ -441,8 +453,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9SixButton.name + 'ForegroundStyle',
         params.keyboard.sixButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9SixButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9SixButton),
     }
     + {
       foregroundStyle:
@@ -464,8 +475,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9SevenButton.name + 'ForegroundStyle',
         params.keyboard.sevenButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9SevenButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9SevenButton),
     }
     + {
       foregroundStyle:
@@ -487,8 +497,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9EightButton.name + 'ForegroundStyle',
         params.keyboard.eightButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9EightButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9EightButton),
     }
     + {
       foregroundStyle:
@@ -510,8 +519,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9NineButton.name + 'ForegroundStyle',
         params.keyboard.nineButton.name + 'BadgeForegroundStyle',
-        params.keyboard.t9NineButton.name + 'SwipeDownForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9NineButton),
     }
     + {
       foregroundStyle:
@@ -559,11 +567,23 @@ local newKeyLayout(isDark=false, isPortrait=false) =
     params.keyboard.spaceButton.params
   )
 
+  // 删除键：上滑清空、下滑撤销，键面正上方 / 正下方显示提示（只用于九键）
   + basicStyle.newSystemButton(
-    params.keyboard.backspaceButton.name,
+    params.keyboard.t9BackspaceButton.name,
     isDark,
-    params.keyboard.backspaceButton.params,
+    params.keyboard.t9BackspaceButton.params {
+      foregroundStyle: [
+        params.keyboard.t9BackspaceButton.name + 'ForegroundStyle',
+        params.keyboard.t9BackspaceButton.name + 'SwipeUpForegroundStyle',
+        params.keyboard.t9BackspaceButton.name + 'SwipeDownForegroundStyle',
+      ],
+    },
   )
+  + {
+    [params.keyboard.t9BackspaceButton.name + 'SwipeUpForegroundStyle']:
+      basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, { text: params.keyboard.t9BackspaceButton.params.swipeUpText } + topBadgeLabelUpParams),
+  }
+  + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9BackspaceButton)
 
   + basicStyle.newSystemButton(
     params.keyboard.alphabeticButton.name,

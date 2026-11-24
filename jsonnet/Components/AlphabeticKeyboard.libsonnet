@@ -67,7 +67,7 @@ local createRightTopBadgeForegroundStyle(isDark, params={}) = {
 // ---- 上滑角标 / 下滑提示（移植自 T9_i2Nine 的 26 键）----
 // 角标文字直接取自按键定义里的 swipeUpAction / swipeDownAction；
 // 快捷指令（剪切、复制…）没有可显示的字符，用 swipeUpText / swipeDownText 指定文字，
-// 或用 swipeDownSystemImageName 显示 SF Symbols 图标（如 Tab）。
+// 也可用 swipeDownSystemImageName 显示 SF Symbols 图标。
 local bottomBadgeLabelDownParams = {
   center: {
     y: 0.8,
