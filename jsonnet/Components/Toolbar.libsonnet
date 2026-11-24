@@ -136,6 +136,42 @@ local t9PinyinBarLayout = [
   },
 ];
 
+// 九键常态（没有输入拼音、还没有候选）时显示的工具栏：
+// 行结构、行高与打字时的横向候选完全相同，只是音节栏和候选词栏留空，
+// 这样分隔线在刚打开键盘时就常态显示（与 iOS 原生九键一致），开始打字后位置也不会跳动。
+local t9IdleToolbarLayout = [
+  {
+    VStack: {
+      subviews: [
+        {
+          HStack: {
+            style: t9PinyinRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerSpacerName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9PinyinDividerSpacerRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerSpacerName }],
+          },
+        },
+        {
+          HStack: {
+            style: t9HorizontalCandidatesRowStyleName,
+            subviews: [{ Cell: t9PinyinDividerSpacerName }],
+          },
+        },
+      ],
+    },
+  },
+];
+
 local newT9PinyinBar(isDark=false, isPortrait=false) = {
   // 音节栏集合
   [t9HorizontalSymbolsName]: {
@@ -167,8 +203,8 @@ local newT9PinyinBar(isDark=false, isPortrait=false) = {
     backgroundStyle: 't9PinyinDividerBackgroundStyle',
   },
   t9PinyinDividerBackgroundStyle: utils.newGeometryStyle({
-    normalColor: colors.separatorColor,
-    highlightColor: colors.separatorColor,
+    normalColor: colors.t9PinyinDividerColor,
+    highlightColor: colors.t9PinyinDividerColor,
   }, isDark),
   [t9PinyinDividerSpacerName]: {
     action: 'none',
@@ -421,4 +457,6 @@ local newToolbar(isDark=false, params={}, withT9PinyinBar=false, isPortrait=fals
 // 导出
 {
   new: newToolbar,
+  // 九键专用：常态工具栏（分隔线常显），由 PinyinPortrait / PinyinLandscape 叠加使用
+  t9IdleToolbarLayout: t9IdleToolbarLayout,
 }

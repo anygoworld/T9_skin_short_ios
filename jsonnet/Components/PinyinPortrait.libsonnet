@@ -548,6 +548,8 @@ local extraParams = {
 
     preedit.new(isDark)
     + toolbar.new(isDark, {}, true, isPortrait)
+    // 常态（未打字）也显示拼音栏与候选词栏之间的分隔线
+    + { toolbarLayout: toolbar.t9IdleToolbarLayout }
     + narrowVStackStyle.style
     + wideVStackStyle.style
     + doubleWideVStackStyle.style
