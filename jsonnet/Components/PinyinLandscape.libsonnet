@@ -6,18 +6,52 @@ local toolbar = import 'Toolbar.libsonnet';
 local utils = import 'Utils.libsonnet';
 
 
-local rightBadgeLabelUpParams = {
+// 上滑角标（数字）：键面正上方居中
+local topBadgeLabelUpParams = {
   center: {
-    x: 0.85,
-    y: 0.25,
+    x: 0.5,
+    y: 0.18,
   },
   fontSize: fonts.iPhone.button.doubleLabelSmallFontSize,
 };
 
-local createRightBadgeForegroundStyle(isDark, params={}) = {
-  [params.name + 'BadgeForegroundStyle']:
-    basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, params.params + rightBadgeLabelUpParams),
+// 下滑提示（行首 / 复制 …）：键面正下方居中，与上方角标对称
+local bottomLabelDownParams = {
+  center: {
+    x: 0.5,
+    y: 0.82,
+  },
+  fontSize: fonts.iPhone.button.doubleLabelSmallFontSize,
 };
+
+local createTopBadgeForegroundStyle(isDark, params={}) = {
+  [params.name + 'BadgeForegroundStyle']:
+    basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, params.params + topBadgeLabelUpParams),
+};
+
+// 有 swipeDownText（文字）或 swipeDownSystemImageName（图标）时才把下滑提示样式加进 foregroundStyle
+// （没有下滑功能的键不显示下方小字）
+local hasSwipeDownLabel(p) =
+  std.objectHas(p, 'swipeDownText') || std.objectHas(p, 'swipeDownSystemImageName');
+
+local swipeDownLabelStyleNames(button) =
+  if hasSwipeDownLabel(button.params) then [button.name + 'SwipeDownForegroundStyle'] else [];
+
+// 生成下滑提示样式：优先用图标（如 Tab），否则用文字
+local createSwipeDownLabelForegroundStyle(isDark, params={}) =
+  if hasSwipeDownLabel(params.params) then {
+    [params.name + 'SwipeDownForegroundStyle']:
+      basicStyle.newAlphabeticButtonSwipeForegroundStyle(
+        isDark,
+        (
+          if std.objectHas(params.params, 'swipeDownSystemImageName') then
+            { systemImageName: params.params.swipeDownSystemImageName }
+          else
+            { text: params.params.swipeDownText }
+        )
+        + bottomLabelDownParams
+      ),
+  } else {};
 
 local createButtonForegroundStyle(isDark, params={}) = {
   [params.name + 'ForegroundStyle']:
@@ -309,7 +343,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9OneButton.name + 'ForegroundStyle',
         params.keyboard.oneButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9OneButton),
     }
     + {
       foregroundStyle:
@@ -318,7 +352,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.oneButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.oneButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9OneButton),
     },
     needHint=false
   )
@@ -330,7 +365,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9TwoButton.name + 'ForegroundStyle',
         params.keyboard.twoButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9TwoButton),
     }
     + {
       foregroundStyle:
@@ -339,7 +374,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.twoButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.twoButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9TwoButton),
     },
     needHint=false
   )
@@ -351,7 +387,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9ThreeButton.name + 'ForegroundStyle',
         params.keyboard.threeButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9ThreeButton),
     }
     + {
       foregroundStyle:
@@ -360,7 +396,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.threeButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.threeButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9ThreeButton),
     },
     needHint=false
   )
@@ -372,7 +409,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9FourButton.name + 'ForegroundStyle',
         params.keyboard.fourButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9FourButton),
     }
     + {
       foregroundStyle:
@@ -381,7 +418,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.fourButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.fourButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9FourButton),
     },
     needHint=false
   )
@@ -393,7 +431,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9FiveButton.name + 'ForegroundStyle',
         params.keyboard.fiveButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9FiveButton),
     }
     + {
       foregroundStyle:
@@ -402,7 +440,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.fiveButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.fiveButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9FiveButton),
     },
     needHint=false
   )
@@ -414,7 +453,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9SixButton.name + 'ForegroundStyle',
         params.keyboard.sixButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9SixButton),
     }
     + {
       foregroundStyle:
@@ -423,7 +462,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.sixButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.sixButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9SixButton),
     },
     needHint=false
   )
@@ -435,7 +475,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9SevenButton.name + 'ForegroundStyle',
         params.keyboard.sevenButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9SevenButton),
     }
     + {
       foregroundStyle:
@@ -444,7 +484,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.sevenButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.sevenButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9SevenButton),
     },
     needHint=false
   )
@@ -456,7 +497,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9EightButton.name + 'ForegroundStyle',
         params.keyboard.eightButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9EightButton),
     }
     + {
       foregroundStyle:
@@ -465,7 +506,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.eightButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.eightButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9EightButton),
     },
     needHint=false
   )
@@ -477,7 +519,7 @@ local newKeyLayout(isDark=false, isPortrait=false) =
       foregroundStyleName: [
         params.keyboard.t9NineButton.name + 'ForegroundStyle',
         params.keyboard.nineButton.name + 'BadgeForegroundStyle',
-      ],
+      ] + swipeDownLabelStyleNames(params.keyboard.t9NineButton),
     }
     + {
       foregroundStyle:
@@ -486,7 +528,8 @@ local newKeyLayout(isDark=false, isPortrait=false) =
             fontSize: fonts.t9ButtonLandscapeTextFontSize,
           },
         })
-        + createRightBadgeForegroundStyle(isDark, params.keyboard.nineButton),
+        + createTopBadgeForegroundStyle(isDark, params.keyboard.nineButton)
+        + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9NineButton),
     },
     needHint=false
   )
@@ -524,11 +567,23 @@ local newKeyLayout(isDark=false, isPortrait=false) =
     params.keyboard.spaceButton.params
   )
 
+  // 删除键：上滑清空、下滑撤销，键面正上方 / 正下方显示提示（只用于九键）
   + basicStyle.newSystemButton(
-    params.keyboard.backspaceButton.name,
+    params.keyboard.t9BackspaceButton.name,
     isDark,
-    params.keyboard.backspaceButton.params,
+    params.keyboard.t9BackspaceButton.params {
+      foregroundStyle: [
+        params.keyboard.t9BackspaceButton.name + 'ForegroundStyle',
+        params.keyboard.t9BackspaceButton.name + 'SwipeUpForegroundStyle',
+        params.keyboard.t9BackspaceButton.name + 'SwipeDownForegroundStyle',
+      ],
+    },
   )
+  + {
+    [params.keyboard.t9BackspaceButton.name + 'SwipeUpForegroundStyle']:
+      basicStyle.newAlphabeticButtonSwipeForegroundStyle(isDark, { text: params.keyboard.t9BackspaceButton.params.swipeUpText } + topBadgeLabelUpParams),
+  }
+  + createSwipeDownLabelForegroundStyle(isDark, params.keyboard.t9BackspaceButton)
 
   + basicStyle.newSystemButton(
     params.keyboard.alphabeticButton.name,
